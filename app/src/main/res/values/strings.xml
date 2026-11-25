@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Volume</string>
+    <string name="tile_label">Volume slider</string>
+</resources>
