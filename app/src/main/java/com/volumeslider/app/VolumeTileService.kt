@@ -3,7 +3,6 @@ package com.volumeslider.app
 import android.app.PendingIntent
 import android.content.Intent
 import android.graphics.drawable.Icon
-import android.media.AudioManager
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
@@ -20,10 +19,8 @@ class VolumeTileService : TileService() {
 
         // Small text under the tile name (Android 10+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val audio = getSystemService(AudioManager::class.java)
-            val max = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1)
-            val percent = audio.getStreamVolume(AudioManager.STREAM_MUSIC) * 100 / max
-            tile.subtitle = "Media $percent%"
+            FineVolume.sync(this)
+            tile.subtitle = "Media ${FineVolume.mediaPercent(this)}%"
         }
         tile.updateTile()
     }
