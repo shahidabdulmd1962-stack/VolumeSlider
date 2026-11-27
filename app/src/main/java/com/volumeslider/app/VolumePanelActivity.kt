@@ -34,10 +34,16 @@ class VolumePanelActivity : Activity() {
     private val handler = Handler(Looper.getMainLooper())
     private val closeTask = Runnable { finish() }
     private var askedForDnd = false
+    private var fineMode = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         audio = getSystemService(AudioManager::class.java)
+
+        // Fine mode: the Media slider moves 1% at a time (only if the phone has few steps)
+        fineMode = FineVolume.isEnabled(this) &&
+            audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC) < 50
+        if (fineMode) FineVolume.sync(this)
 
         // Full-screen transparent layer: tapping outside the card closes the panel
         val root = FrameLayout(this)
@@ -71,7 +77,8 @@ class VolumePanelActivity : Activity() {
     }
 
     private fun createColumn(channel: Channel): LinearLayout {
-        val steps = audio.getStreamMaxVolume(channel.stream).coerceAtLeast(1)
+        val fine = fineMode && channel.stream == AudioManager.STREAM_MUSIC
+        val steps = if (fine) 100 else audio.getStreamMaxVolume(channel.stream).coerceAtLeast(1)
 
         val percent = TextView(this)
         percent.setTextColor(Color.WHITE)
@@ -82,14 +89,19 @@ class VolumePanelActivity : Activity() {
         val slider = VerticalSlider(this)
         slider.max = steps
         slider.fillColor = channel.color
-        slider.value = audio.getStreamVolume(channel.stream)
+        slider.value = if (fine) FineVolume.mediaPercent(this) else audio.getStreamVolume(channel.stream)
         percent.text = percentText(slider.value, steps)
 
         slider.onChange = { level ->
-            setVolume(channel.stream, level)
-            val actual = audio.getStreamVolume(channel.stream)
-            slider.value = actual
-            percent.text = percentText(actual, steps)
+            if (fine) {
+                FineVolume.setMediaPercent(this, level)
+                percent.text = percentText(level, steps)
+            } else {
+                setVolume(channel.stream, level)
+                val actual = audio.getStreamVolume(channel.stream)
+                slider.value = actual
+                percent.text = percentText(actual, steps)
+            }
         }
 
         val label = TextView(this)
@@ -149,6 +161,7 @@ class VolumePanelActivity : Activity() {
     override fun onStop() {
         super.onStop()
         handler.removeCallbacks(closeTask)
+        if (fineMode) FineVolume.releaseIfIdle(this)
         finish()
     }
 }
