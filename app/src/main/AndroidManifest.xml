@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Needed for the fine volume audio effect -->
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -23,7 +17,7 @@
             </intent-filter>
         </activity>
 
-        <!-- The volume panel that opens on the right side -->
+        <!-- Normal screen version of the volume panel -->
         <activity
             android:name=".VolumePanelActivity"
             android:exported="false"
@@ -41,16 +35,6 @@
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
-        </service>
-
-        <!-- Keeps the fine volume audio effect alive -->
-        <service
-            android:name=".FineVolumeService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Fine media volume using an audio effect" />
         </service>
 
     </application>
